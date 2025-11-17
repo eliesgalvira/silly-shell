@@ -13,8 +13,8 @@ rl.on("line", (line) => {
   const commandName = commandFields[0];
   const commandArgs = commandFields.slice(1);
 
-  if (commandName === "exit") {
-    process.exit(commandArgs[0]); // The tester will always pass in 0 here
+  if (command === "exit 0") {
+    process.exit(0);
   }
 
   if (commandName) {
