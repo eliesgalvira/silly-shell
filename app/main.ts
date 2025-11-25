@@ -13,7 +13,7 @@ rl.on("line", (line) => {
   const commandName = commandFields[0];
   const commandArgs = commandFields.slice(1);
 
-  if (command === "exit 0") {
+  if (command === "exit 0" || command === "exit") {
     process.exit(0);
   }
 
