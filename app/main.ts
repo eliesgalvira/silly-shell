@@ -1,4 +1,7 @@
 import { createInterface } from "readline";
+import { existsSync, accessSync, constants } from "fs";
+import { join, delimiter } from "path";
+
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -54,11 +57,50 @@ rl.on("close", () => {
 
 
 const typeBuiltin = (args: string[]) => {
-  args.forEach((possibleBuiltin) => {
-    if (builtinValues.has(possibleBuiltin)) {
-      console.log(`${possibleBuiltin} is a shell builtin`);
+  args.forEach((arg) => {
+    if (builtinValues.has(arg)) {
+      console.log(`${arg} is a shell builtin`);
     } else {
-      console.log(`${possibleBuiltin}: not found`)
+      const executablePath = findExecutableInPath(arg);
+
+      if (executablePath) {
+        console.log(`${arg} is ${executablePath}`);
+      } else {
+        console.log(`${arg}: not found`);
+      }
     }
   })
 }
+
+
+// Searches for an executable in the system PATH, stop at the first executable match
+const findExecutableInPath = (command: string): string | null => {
+  const pathEnv = process.env.PATH ?? "";
+  const directories = pathEnv.split(delimiter);
+
+  for (const dir of directories) {
+    // Optional skip empty entries (e.g., from trailing delimiters)
+    // avoids unnecessary join and existsSync calls
+    if (!dir) {
+      continue;
+    }
+
+    const fullPath = join(dir, command);
+
+    if (!existsSync(fullPath)) {
+      continue;
+    }
+
+    try {
+      // Check if file has execute permissions
+      accessSync(fullPath, constants.X_OK);
+
+      return fullPath;
+    } catch {
+      // accessSync throws if no execute permission, continue to next dir
+      continue;
+    }
+  }
+
+  return null;
+};
