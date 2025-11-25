@@ -4,6 +4,13 @@ const rl = createInterface({
   output: process.stdout,
 });
 
+const builtins = {
+  ECHO: "echo",
+  EXIT: "exit"
+ } as const;
+
+type Builtins = (typeof builtins)[keyof typeof builtins];
+
 rl.setPrompt("$ ");
 rl.prompt();
 
@@ -13,11 +20,11 @@ rl.on("line", (line) => {
   const commandName = commandFields[0];
   const commandArgs = commandFields.slice(1);
 
-  if (command === "exit 0" || command === "exit") {
+  if (command === "exit 0" || command === builtins.EXIT) {
     process.exit(0);
   }
 
-  else if (commandName === "echo") {
+  else if (commandName === builtins.ECHO) {
     console.log(commandArgs.join(" "));
     rl.prompt();
   }
