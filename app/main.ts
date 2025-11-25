@@ -17,7 +17,12 @@ rl.on("line", (line) => {
     process.exit(0);
   }
 
-  if (commandName) {
+  else if (commandName === "echo") {
+    console.log(commandArgs.join(" "));
+    rl.prompt();
+  }
+  
+  else if (commandName) {
     console.log(`${commandName}: not found`);
   }
   rl.prompt();
