@@ -1,4 +1,4 @@
-import { createInterface } from "readline";
+import { createInterface } from "node:readline";
 import { spawn } from "node:child_process";
 import { builtins, type Builtins } from "./types.js";
 import { isBuiltin } from "./utils.js";
