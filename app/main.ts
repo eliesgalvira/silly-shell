@@ -15,6 +15,11 @@ const builtins = {
 
 type Builtins = (typeof builtins)[keyof typeof builtins];
 
+type ResolvedCommand =
+  | { kind: "builtin"; name: Builtins }
+  | { kind: "executable"; name: string; path: string }
+  | { kind: "notFound"; name: string };
+
 const builtinValues: Set<string> = new Set(Object.values(builtins));
 
 // Type guard
@@ -56,20 +61,36 @@ rl.on("close", () => {
 });
 
 
-const typeBuiltin = (args: string[]) => {
-  args.forEach((arg) => {
-    if (builtinValues.has(arg)) {
-      console.log(`${arg} is a shell builtin`);
-    } else {
-      const executablePath = findExecutableInPath(arg);
+const findCommandType = (command: string): ResolvedCommand => {
+  if (isBuiltin(command)) {
+    return { kind: "builtin", name: command };
+  }
 
-      if (executablePath) {
-        console.log(`${arg} is ${executablePath}`);
-      } else {
-        console.log(`${arg}: not found`);
-      }
-    }
-  })
+  const executablePath = findExecutableInPath(command);
+  if (executablePath) {
+    return { kind: "executable", name: command, path: executablePath };
+  }
+
+  return { kind: "notFound", name: command };
+};
+
+const messageCommandType = (resolved: ResolvedCommand): string => {
+  if (resolved.kind === "builtin") {
+    return `${resolved.name} is a shell builtin`;
+  }
+
+  if (resolved.kind === "executable") {
+    return `${resolved.name} is ${resolved.path}`;
+  }
+
+  return `${resolved.name}: not found`;
+};
+
+const typeBuiltin = (args: string[]) => {
+  args.map(findCommandType)
+    .forEach((resolved) => {
+      console.log(messageCommandType(resolved));
+    });
 }
 
 
