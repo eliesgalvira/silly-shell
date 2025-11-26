@@ -1,4 +1,5 @@
 import { createInterface } from "readline";
+import { spawn } from "node:child_process";
 import { builtins, type Builtins } from "./types.js";
 import { isBuiltin } from "./utils.js";
 import { typeBuiltin } from "./builtins/type.js";
@@ -37,12 +38,13 @@ rl.on("line", async (line) => {
 
   const executablePath = findExecutableInPath(commandName);
   if (executablePath) {
-    const proc = Bun.spawn([executablePath, ...commandArgs], {
-      stdout: "inherit",
-      stderr: "inherit",
+    const proc = spawn(executablePath, commandArgs, {
+      stdio: "inherit",
     });
-    await proc.exited;
-    rl.prompt();
+
+    proc.on("close", () => {
+      rl.prompt();
+    });
     return;
   }
 
