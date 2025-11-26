@@ -1,6 +1,6 @@
 import { createInterface } from "readline";
 import { existsSync, accessSync, constants } from "fs";
-import { join, delimiter } from "path";
+import { join, delimiter, isAbsolute } from "path";
 
 const rl = createInterface({
   input: process.stdin,
@@ -100,9 +100,10 @@ const findExecutableInPath = (command: string): string | null => {
   const directories = pathEnv.split(delimiter);
 
   for (const dir of directories) {
-    // Optional skip empty entries (e.g., from trailing delimiters)
+    // Optional: skip empty entries (e.g., from trailing delimiters)
+    // and malformed non-absolute paths (isAbsolute is a cheap string check)
     // avoids unnecessary join and existsSync calls
-    if (!dir) {
+    if (!dir || !isAbsolute(dir)) {
       continue;
     }
 
