@@ -40,6 +40,7 @@ rl.on("line", async (line) => {
   if (executablePath) {
     const proc = spawn(executablePath, commandArgs, {
       stdio: "inherit",
+      argv0: commandName,
     });
 
     proc.on("close", () => {
