@@ -2,6 +2,7 @@ import { createInterface } from "readline";
 import { builtins, type Builtins } from "./types.js";
 import { isBuiltin } from "./utils.js";
 import { typeBuiltin } from "./builtins/type.js";
+import { findExecutableInPath } from "./utils.js";
 
 const rl = createInterface({
   input: process.stdin,
@@ -17,7 +18,7 @@ const commandHandlers:  Record<Builtins, (args: string[]) => void> = {
 rl.setPrompt("$ ");
 rl.prompt();
 
-rl.on("line", (line) => {
+rl.on("line", async (line) => {
   const command = line.trim();
   const commandFields = command.split(" ");
   const commandName = commandFields[0];
@@ -30,9 +31,22 @@ rl.on("line", (line) => {
 
   if (isBuiltin(commandName)) {
     commandHandlers[commandName](commandArgs);
-  } else {
-    console.log(`${commandName}: not found`);
+    rl.prompt();
+    return;
   }
+
+  const executablePath = findExecutableInPath(commandName);
+  if (executablePath) {
+    const proc = Bun.spawn([executablePath, ...commandArgs], {
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    await proc.exited;
+    rl.prompt();
+    return;
+  }
+
+  console.log(`${commandName}: not found`);
 
   rl.prompt();
 });
